@@ -1,0 +1,168 @@
+---
+title: "Exploratory data analysis in R"
+output: html_notebook
+---
+
+
+```{r}
+```
+```{r}
+getwd()
+setwd("C:/Users/hp/Downloads/Biostatistics/assignment1")#But this will work 
+population_total <- read.csv("population_total.csv", header = T, check.names = FALSE) 
+library(tidyr)
+long_format <- population_total.long <- pivot_longer(population_total, cols=2:302, names_to = "year", values_to = "population_total")
+long_format
+```
+```{r}
+library(rnaturalearth)
+library(dplyr)
+library(rgeos)
+library(sf)
+world = ne_countries(returnclass = "sf")%>%
+  select(iso_a2, name_long, continent)
+World
+merged_df <- merge(world, long_format, by.x = "name_long", by.y = "country", all.x = TRUE)
+head(merged_df)
+```
+```{r}
+# sorting examples using the mtcars dataset
+attach(merged_df)
+
+# sort by mpg
+newdata <- merged_df[order(year),]
+
+# sort by mpg and cyl
+#newdata <- mtcars[order(mpg, cyl),]
+
+#sort by mpg (ascending) and cyl (descending)
+#newdata <- mtcars[order(mpg, -cyl),]
+
+detach(merged_df)
+newdata
+```
+
+```{r}
+library(tmap)
+library(sf)
+k <- "+proj=eck4 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
+m <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+my_ani <- tm_shape(newdata, projection = m ) +
+  tm_fill("population_total", title = "Total Population",
+          palette = "inferno") +
+  tm_facets( along = "year" ) +tm_layout(frame = TRUE)
+
+tmap_animation(my_ani, filename = "In.gif",
+               width = 1500, height = 600, delay = 60)
+```
+```{r}
+getwd()
+setwd("C:/Users/hp/Downloads/Biostatistics/assignment1")
+population_total <- read.csv("population_total.csv", header = T, check.names = FALSE)
+child_mortality <- read.csv("child_mortality_0_5_year_olds_dying_per_1000_born.csv", header = T, check.names = FALSE) 
+child_per_woman <- read.csv("children_per_woman_total_fertility.csv", header = T, check.names = FALSE) 
+lifeExpectancyInYears <- read.csv("life_expectancy_years.csv", header = T, check.names = FALSE) 
+income_per_person <- read.csv("income_per_person_gdppercapita_ppp_inflation_adjusted.csv", header = T, check.names = FALSE) 
+
+library(tidyr)
+long_population <- population_total.long <- pivot_longer(population_total, cols=2:302, names_to = "year", values_to = "population_total")
+
+long_child_mortality <- child_mortality.long <- pivot_longer(child_mortality, cols=2:302, names_to = "year", values_to = "child_mortality")
+
+long_income <- income_per_person.long <- pivot_longer(income_per_person, cols=2:242, names_to = "year", values_to = "income_per_person")
+long_child_per_woman <- child_per_woman.long <- pivot_longer(child_per_woman, cols=2:302, names_to = "year", values_to = "child_per_woman")
+long_life_expectancy <- lifeExpectancyInYears.long <- pivot_longer(lifeExpectancyInYears, cols=2:302, names_to = "year", values_to = "life_expec")
+
+```
+
+```{r}
+library(dplyr)
+merged <- Reduce(function(x, y) merge(x, y, all=TRUE), list(long_population,long_child_mortality, long_income,  long_child_per_woman, long_life_expectancy))
+
+merged$year <- as.numeric(as.character(merged$year))
+merged
+```
+```{r}
+library(ggplot2)
+library(gganimate)
+theme_set(theme_bw())
+
+p <- ggplot(
+  merged, 
+  aes(x =income_per_person , y=life_expec, colour = country)
+  ) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  scale_color_viridis_d() +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  labs(x = "GDP per capita", y = "Life expectancy")
+p
+```
+```{r}
+p + transition_time(year) +
+  labs(title = "Year: {frame_time}") +
+shadow_wake(wake_length = 0.1, alpha = FALSE)
+```
+```{r}
+library(ggplot2)
+library(gganimate)
+theme_set(theme_bw())
+
+q <- ggplot(
+  merged, 
+  aes(x =child_mortality , y=life_expec, colour = country)
+  ) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  scale_color_viridis_d() +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  labs(x = "Child Mortality", y = "Life expectancy")
+q
+```
+```{r}
+q + transition_time(year) +
+  labs(title = "Year: {frame_time}") +
+shadow_wake(wake_length = 0.1, alpha = FALSE)
+```
+```{r}
+library(ggplot2)
+library(gganimate)
+theme_set(theme_bw())
+
+r <- ggplot(
+  merged, 
+  aes(x =child_per_woman , y=life_expec, colour = country)
+  ) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  scale_color_viridis_d() +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  labs(x = "Child Per Woman", y = "Life expectancy")
+r
+```
+```{r}
+r + transition_time(year) +
+  labs(title = "Year: {frame_time}") +
+shadow_wake(wake_length = 0.1, alpha = FALSE)
+```
+```{r}
+library(ggplot2)
+library(gganimate)
+theme_set(theme_bw())
+
+m <- ggplot(
+  merged, 
+  aes(x =population_total , y=life_expec, colour = country)
+  ) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  scale_color_viridis_d() +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  labs(x = "Total Population", y = "Life expectancy")
+m
+```
+```{r}
+m + transition_time(year) +
+  labs(title = "Year: {frame_time}") +
+shadow_wake(wake_length = 0.1, alpha = FALSE)
+```
