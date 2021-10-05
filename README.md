@@ -26,4 +26,4 @@ In this course project, I designed an innovative way to do exploratory data anal
 ![Alt Text](image2.gif)
 
 
-[report](https://docs.google.com/document/d/1h1mM7KjjHxVBH1CxH9syR_SD5g_n4IaYUz4k_Ctc2d4/edit?usp=sharing)
+[report](Report.pdf)
